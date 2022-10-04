@@ -15,7 +15,7 @@ mod lip_token {
     use ink_storage::Mapping;
 
     /// A token ID.
-    pub type TokenId = u32;
+    pub type TokenId = u128;
 
     /// Defines the storage of your contract.
     /// Add new fields to the below struct in order
@@ -24,7 +24,7 @@ mod lip_token {
     #[derive(Default, SpreadAllocate)]
     pub struct LipToken {
         /// Counter of Tokens
-        counter: u32,
+        counter: u128,
         owner: AccountId,
         fee: u128,
         lips: Vec<Lip>,
@@ -33,7 +33,7 @@ mod lip_token {
         /// Mapping from token to approvals users.
         token_approvals: Mapping<TokenId, AccountId>,
         /// Mapping from owner to number of owned token.
-        owned_tokens_count: Mapping<AccountId, u32>,
+        owned_tokens_count: Mapping<AccountId, u128>,
         /// Mapping from owner to operator approvals.
         operator_approvals: Mapping<(AccountId, AccountId), ()>,
     }
@@ -51,7 +51,7 @@ mod lip_token {
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
     pub struct Lip {
         name: ink_prelude::string::String,
-        id: u32,
+        id: u128,
         dna: Hash,
         level: u8,
         rarity: u8,
@@ -100,7 +100,7 @@ mod lip_token {
         #[ink(topic)]
         owner: AccountId,
         #[ink(topic)]
-        id: u32,
+        id: u128,
         #[ink(topic)]
         dna: Hash,
     }
@@ -112,7 +112,7 @@ mod lip_token {
                 let caller = Self::env().caller();
                 contract.owner = caller;
                 contract.counter = 1;
-                contract.fee = 1;
+                contract.fee = 1000000000000;
             })
         }
 
@@ -138,6 +138,16 @@ mod lip_token {
             let (hash, _block) = self.env().random(timestamp.as_bytes());
             let n: u8 = hash.as_ref()[0];
             n
+        }
+
+        #[ink(message)]
+        pub fn withraw(&mut self) -> Result<(), Error> {
+            self.only_owner()?;
+            let caller = self.env().caller();
+            match self.env().transfer(caller, self.env().balance()) {
+                Ok(_n) => Ok(()),
+                Err(err) => Err(Error::TransferError),
+            }
         }
 
         // Update the fee for minting lips
@@ -211,7 +221,7 @@ mod lip_token {
             Ok(())
         }
 
-        fn safe_mint(&mut self, to: &AccountId, counter: u32) -> Result<(), Error> {
+        fn safe_mint(&mut self, to: &AccountId, counter: u128) -> Result<(), Error> {
             let caller = self.env().caller();
             self.add_token_to(to, counter)?;
             self.env().emit_event(Transfer {
@@ -349,7 +359,7 @@ mod lip_token {
         }
 
         // Returns the total number of tokens from an account.
-        fn balance_of_or_zero(&self, of: &AccountId) -> u32 {
+        fn balance_of_or_zero(&self, of: &AccountId) -> u128 {
             self.owned_tokens_count.get(of).unwrap_or(0)
         }
 
@@ -382,7 +392,7 @@ mod lip_token {
         ///
         /// This represents the amount of unique tokens the owner has.
         #[ink(message)]
-        fn balance_of(&self, owner: AccountId) -> u32 {
+        fn balance_of(&self, owner: AccountId) -> u128 {
             self.balance_of_or_zero(&owner)
         }
 

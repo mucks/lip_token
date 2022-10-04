@@ -3,7 +3,7 @@ use ink_lang as ink;
 use scale::{Decode, Encode};
 
 /// A token ID.
-pub type TokenId = u32;
+pub type TokenId = u128;
 
 #[derive(Encode, Decode, Debug, PartialEq, Eq, Copy, Clone)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
@@ -15,6 +15,7 @@ pub enum Error {
     CannotInsert,
     CannotFetchValue,
     NotAllowed,
+    TransferError,
 }
 
 #[ink::trait_definition]
@@ -23,7 +24,7 @@ pub trait BaseErc721 {
     ///
     /// This represents the amount of unique tokens the owner has.
     #[ink(message)]
-    fn balance_of(&self, owner: AccountId) -> u32;
+    fn balance_of(&self, owner: AccountId) -> u128;
 
     /// Returns the owner of the token.
     #[ink(message)]
