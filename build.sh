@@ -1,0 +1,1 @@
+cargo +nightly-2022-08-15 contract build --release
